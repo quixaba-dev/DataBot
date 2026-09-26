@@ -22,11 +22,29 @@ class Bot():
     def start(self):
         @self.bot.command("transcend")
         async def handle(ctx, *, prompt):
+
+            async def send_response(ctx, response: str):
+                header = "### 🧠 DataCenter AI\n\n"
+                continuation = "-# DataCenter AI · continuação\n\n"
+
+                first_limit = 2000 - len(header)
+
+                await ctx.send(header + response[:first_limit])
+
+                remaining = response[first_limit:]
+
+                while remaining:
+                    limit = 2000 - len(continuation)
+
+                    await ctx.send(
+                        continuation + remaining[:limit]
+                    )
+
+                    remaining = remaining[limit:]
+
             response = await self.model.query(prompt)
             content = response["response"]
 
-            limit = 2000
-            for i in range(0, len(content), limit):
-                await ctx.send(content[i:i+limit])
+            await send_response(ctx, content)
 
         self.bot.run(self.token)
