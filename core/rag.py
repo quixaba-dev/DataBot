@@ -1,7 +1,7 @@
 import os
 import faiss
 import numpy as np
-from pathlib import Path  # <-- Usaremos pathlib para busca recursiva
+from pathlib import Path
 from sentence_transformers import SentenceTransformer
 
 # Carrega o modelo de embeddings
