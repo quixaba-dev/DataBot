@@ -3,7 +3,7 @@ import time
 from pathlib import Path
 
 from core.agent import Agent
-from config import cfg
+from providers.openaicompatible import OpenAICompatible
 
 
 PROMPTS = [
@@ -95,18 +95,7 @@ no comportamento do mercado ao longo do tempo.
 ]
 
 
-agent = Agent(
-    api_key=cfg.APIKEY
-)
-
-
-async def callback(data):
-    # O teste salva tudo posteriormente.
-    # Aqui mostramos somente a resposta no terminal.
-    if isinstance(data, dict):
-        print(data["response"])
-    else:
-        print(data)
+agent = Agent(provider=OpenAICompatible())
 
 
 async def main():
@@ -114,7 +103,7 @@ async def main():
     output = Path("resultados_teste.txt")
 
     output.write_text(
-        "TESTE AUTOMÁTICO DO RAG\n"
+        "AVALIAÇÃO MANUAL DO AGENTE\n"
         "========================\n\n",
         encoding="utf-8"
     )
@@ -135,16 +124,12 @@ async def main():
         inicio = time.perf_counter()
 
         try:
-            resultado = await agent.query(
-                prompt,
-                callback
-            )
+            resultado = await agent.query(prompt)
 
             tempo = time.perf_counter() - inicio
 
             resposta = resultado["response"]
             contexto = resultado["context"]
-            documentos = resultado["documents"]
             quantidade = resultado["document_count"]
             caracteres = resultado["context_characters"]
 
@@ -157,11 +142,8 @@ async def main():
             )
 
             contexto = "Contexto indisponível devido ao erro."
-            documentos = []
             quantidade = 0
             caracteres = 0
-
-            print(resposta)
 
         with output.open(
             "a",
@@ -206,6 +188,7 @@ TEMPO:
 """
             )
 
+        print(resposta)
         print(f"\nDocumentos: {quantidade}")
         print(f"Contexto: {caracteres:,} caracteres")
         print(f"Tempo: {tempo:.2f}s")
