@@ -1,7 +1,9 @@
-flask
-flask-cors
-openai
 faiss-cpu
-sentence-transformers
-pyTelegramBotAPI
+discord.py-self
 googlesearch-python
+holehe
+numpy
+openai
+python-dotenv
+sentence-transformers
+sherlock-project
