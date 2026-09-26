@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 class Agent:
     def __init__(self, provider):
 
+        self.rag = RAG()
         self.provider = provider
         self.ToolCaller = ToolCaller()
         
@@ -22,13 +23,29 @@ class Agent:
         ]
 
     async def query(self, query):
-        resultados = RAG.search(query, k=15)
-        contexto = "\n\n".join(resultados)
+        if self.rag.available:
+            results = self.rag.search(
+                query,
+                k=15
+            )
+        else:
+            results = [
+                """
+        No external knowledge base is currently available.
+
+        Answer using your own knowledge and the available tools.
+        Do not claim or imply that information was retrieved from the local
+        knowledge base. Use the available tools when they are appropriate
+        for obtaining additional information.
+        """.strip()
+            ]
+
+        contexto = "\n\n".join(results)
 
         if not contexto:
             logger.warning("No context found - Verify RAG & Data Folder")
 
-        logger.info(f"Documentos recuperados: {len(resultados)}")
+        logger.info(f"Documentos recuperados: {len(results)}")
         logger.info(f"Caracteres do contexto: {len(contexto):,}")
 
         self.messages.append({
@@ -58,8 +75,8 @@ class Agent:
         debug_result = {
             "response": result,
             "context": contexto,
-            "documents": resultados,
-            "document_count": len(resultados),
+            "documents": results,
+            "document_count": len(results),
             "context_characters": len(contexto)
         }
 
