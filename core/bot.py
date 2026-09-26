@@ -28,6 +28,10 @@ class Bot():
         async def handle(ctx, *, prompt):
 
             async def ctxsend(result):
-                await ctx.send(result)
+
+                limit = 2000
+
+                for i in range(0, len(result), limit):
+                    await ctx.send(result[i:i + limit])
 
             await self.model.query(prompt, ctxsend)
