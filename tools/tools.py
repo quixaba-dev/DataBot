@@ -51,15 +51,16 @@ class Tools:
 
     @staticmethod
     async def search(query):
-        results = await asyncio.to_thread(
-            lambda: list(
-                google_search(query, num_results=10)
+        try:
+            results = await asyncio.to_thread(
+                lambda: list(
+                    google_search(query, num_results=10)
+                )
             )
-        )
 
-        print("RAW RESULTS:", results)
+            output = "\n".join(results)
 
-        if not results:
-            return "Nenhum resultado encontrado."
+            return output
 
-        return "\n".join(results)
+        except Exception as e:
+            print(f"Exceção ao executar pesquisa para {query}: {e}")

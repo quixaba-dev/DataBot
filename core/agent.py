@@ -14,14 +14,14 @@ class Agent:
         with open("bot/rules.txt", encoding="utf-8") as f:
             self.rules = f.read()
 
-    async def query(self, query):
-        messages = [
+        self.messages = [
             {
                 "role": "system",
                 "content": self.rules
             }
         ]
 
+    async def query(self, query):
         resultados = RAG.search(query, k=15)
         contexto = "\n\n".join(resultados)
 
@@ -31,7 +31,7 @@ class Agent:
         logger.info(f"Documentos recuperados: {len(resultados)}")
         logger.info(f"Caracteres do contexto: {len(contexto):,}")
 
-        messages.append({
+        self.messages.append({
             "role": "user",
             "content": f"""
                 <RAG_CONTEXT>
@@ -44,19 +44,7 @@ class Agent:
                 """
         })
 
-        """"
-
-        response = await self.client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            temperature=0.1,
-            tools=self.ToolCaller.tools,
-            tool_choice="auto"
-        )
-
-        """
-
-        response = await self.provider.generate(messages, self.ToolCaller.tools)
+        response = await self.provider.generate(self.messages, self.ToolCaller.tools)
 
         if response.tool_calls:
             tool = response.tool_calls[0]

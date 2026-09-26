@@ -1,5 +1,7 @@
-import threading
 from tools.tools import Tools
+import logging
+
+logger = logging.getLogger(__name__)
 
 tools=[
     {
@@ -59,7 +61,7 @@ tools=[
 class ToolCaller:
     def __init__(self, tools=tools):
         self.tools = tools
-        print("<< ToolCaller initialized >>")
+        logger.debug("ToolCaller initialized")
 
     async def call_tool(self, tool_name, **kwargs):
         registered = any(
