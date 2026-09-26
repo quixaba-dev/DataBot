@@ -10,7 +10,6 @@ class NexusBot(commands.Bot):
             self_bot=True
         )
 
-
 class Bot():
     def __init__(self, token, agent=None):
         self.token = token
@@ -19,16 +18,11 @@ class Bot():
         self.target = None
         self.model = agent if agent is not None else Agent()
         print("<< Bot initialized >> ")
-
-        self.sessions = []
-
     
     def start(self):
         @self.bot.command("transcend")
         async def handle(ctx, *, prompt):
-
             async def ctxsend(result):
-
                 limit = 2000
 
                 for i in range(0, len(result), limit):

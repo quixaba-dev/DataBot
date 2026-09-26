@@ -2,6 +2,9 @@ from openai import AsyncOpenAI
 from core.rag import RAG
 from tools.ToolCaller import ToolCaller
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Agent:
@@ -19,6 +22,7 @@ class Agent:
             return
 
         self.ToolCaller = ToolCaller()
+        
 
         with open("bot/rules.txt", encoding="utf-8") as f:
             self.rules = f.read()
@@ -35,8 +39,11 @@ class Agent:
 
         contexto = "\n\n".join(resultados)
 
-        print(f"Documentos recuperados: {len(resultados)}")
-        print(f"Caracteres do contexto: {len(contexto):,}")
+        if not contexto:
+            logger.warning("No context found - Verify RAG & Data Folder")
+
+        logger.info(f"Documentos recuperados: {len(resultados)}")
+        logger.info(f"Caracteres do contexto: {len(contexto):,}")
 
         messages.append({
             "role": "user",
