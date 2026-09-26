@@ -1,4 +1,4 @@
-from openai import OpenAI
+from openai import AsyncOpenAI
 from core.rag import RAG
 from tools.ToolCaller import ToolCaller
 import json
@@ -9,7 +9,7 @@ import asyncio
 class Agent:
     def __init__(self, api_key, model="openai/gpt-oss-120b"):
         try:
-            self.client = OpenAI(
+            self.client = AsyncOpenAI(
                 api_key=api_key,
                 base_url="https://api.groq.com/openai/v1"
             )
@@ -43,7 +43,7 @@ query:
 """
         })
 
-        response = self.client.chat.completions.create(
+        response = await self.client.chat.completions.create(
             model=self.model,
             messages=messages,
             temperature=0.1,
@@ -59,8 +59,9 @@ query:
             tool = message.tool_calls[0]
             args = json.loads(tool.function.arguments)
 
-            result = self.ToolCaller.call_tool(
-                tool.function.name, callback,
+            result = await self.ToolCaller.call_tool(
+                tool.function.name,
+                callback,
                 **args
             )
         else:
