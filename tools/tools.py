@@ -3,7 +3,7 @@ from googlesearch import search
 
 class Tools:
     @staticmethod
-    def sherlock(username, callback):
+    async def sherlock(username, callback):
             try:
                 resultado = subprocess.run(
                     ["sherlock", username],
@@ -13,14 +13,14 @@ class Tools:
                 )
                 print(resultado.stdout if resultado.returncode == 0 else resultado.stderr)
                 output = resultado.stdout if resultado.returncode == 0 else resultado.stderr
-                callback(output)  # Chama o callback com a saída do comando
+                await callback(output)  # Chama o callback com a saída do comando
 
             except Exception as e:
                 print(f"Exceção ao executar sherlock para {username}: {e}")
 
 
     @staticmethod
-    def holehe(email, callback):
+    async def holehe(email, callback):
             try:
                 resultado = subprocess.run(
                     ["holehe", email],
@@ -30,7 +30,7 @@ class Tools:
                 )
                 print(resultado.stdout if resultado.returncode == 0 else resultado.stderr)
                 output = resultado.stdout if resultado.returncode == 0 else resultado.stderr
-                callback(output)  # Chama o callback com a saída do comando
+                await callback(output)  # Chama o callback com a saída do comando
 
             except Exception as e:
                 print(f"Exceção ao executar holehe para {email}: {e}")
