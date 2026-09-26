@@ -2,9 +2,9 @@
 
 # 🧠 DataCenter AI
 
-### Discord AI Agent for Blox Fruits Market Analysis
+### Context-Aware AI Agent with RAG & Tool Calling
 
-**RAG · Semantic Search · Tool Calling · OSINT**
+**RAG · Semantic Search · Tool Calling · Extensible Context**
 
 <br>
 
@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/Status-Experimental-orange?style=for-the-badge">
 </p>
 
-Bot experimental para Discord que combina **IA, RAG e busca semântica** para analisar dados do mercado de trocas de **Blox Fruits**.
+Agente de IA extensível capaz de combinar **contexto externo, recuperação semântica e ferramentas** para responder perguntas e executar tarefas.
 
 </div>
 
@@ -23,99 +23,122 @@ Bot experimental para Discord que combina **IA, RAG e busca semântica** para an
 
 ## ✨ Sobre
 
-O **DataCenter AI** é um agente experimental desenvolvido em Python para responder perguntas e analisar padrões relacionados ao mercado de trocas de **Blox Fruits**.
+O **DataCenter AI** é um agente experimental desenvolvido em Python com foco em **contexto extensível e integração de ferramentas**.
 
-O projeto combina um LLM acessado através da **Groq**, busca semântica local utilizando **Sentence Transformers + FAISS** e um sistema de **Tool Calling** capaz de executar ferramentas externas quando necessário.
+Em vez de limitar o modelo ao conhecimento disponível no próprio LLM, o projeto permite alimentar o agente com informações provenientes de fontes externas. Esses dados são indexados e recuperados semanticamente através de uma arquitetura **RAG (Retrieval-Augmented Generation)**.
 
-Os dados são armazenados localmente em arquivos JSONL, processados e transformados em embeddings durante a inicialização.
+O agente também possui suporte a **Tool Calling**, permitindo que novas ferramentas sejam disponibilizadas ao modelo para ampliar suas capacidades além da geração de texto.
+
+A arquitetura busca manter três responsabilidades independentes:
+
+```text
+Context Sources  →  conhecimento disponível ao agente
+Tools            →  capacidades disponíveis ao agente
+Interfaces       →  onde o agente pode ser utilizado
+```
+
+Os dados e ferramentas presentes atualmente no repositório são **implementações e fontes utilizadas pelo projeto**, e não definem o propósito ou domínio do DataCenter AI.
 
 ---
 
 ## 🚀 Funcionalidades
 
-- 🎮 Integração com **Discord** através do comando `.transcend`
-- 🧠 **RAG** para recuperação de contexto
-- 🔎 Embeddings com `all-MiniLM-L6-v2`
-- ⚡ Busca vetorial em memória com **FAISS**
-- 📊 Análise de anúncios e valores de itens
-- 🛠️ **Tool Calling** controlado pelo modelo
-- 🕵️ Integração com **Sherlock** e **Holehe**
-- 📝 Sistema centralizado de **logging**
-- 🧪 Ambiente de avaliação manual do agente
-- 💬 Divisão automática de respostas para respeitar o limite do Discord
-
-> **Importante:** registros `trade_listing` representam anúncios encontrados no conjunto de dados, não trocas confirmadas. Valores, demanda e outros rótulos representam informações presentes nas fontes utilizadas e não necessariamente negociações efetivamente realizadas.
+- 🧠 **RAG** para enriquecimento dinâmico de contexto
+- 🔎 Busca semântica baseada em embeddings
+- ⚡ Indexação vetorial utilizando **FAISS**
+- 📁 Suporte a fontes de contexto baseadas em JSONL
+- 🛠️ Arquitetura de **Tool Calling**
+- 🧩 Sistema extensível de tools
+- 🤖 Integração com LLM através da **Groq**
+- 🎮 Interface atual através do **Discord**
+- ⚡ Processamento assíncrono
+- 📝 Sistema centralizado de logging
+- 🧪 Ambiente para avaliação manual do agente
 
 ---
 
-## ⚙️ Como funciona
+## 🏗️ Arquitetura
 
 ```text
-Discord (.transcend)
-        │
-        ▼
-   ┌─────────┐
-   │  Agent  │
-   └────┬────┘
-        │
-        ├──────────────► RAG
-        │                 │
-        │            Semantic Search
-        │                 │
-        │                FAISS
-        │                 │
-        │              JSONL Data
-        │                 │
-        ◄──── Context ─────┘
-        │
-        ▼
-   Groq / LLM
-        │
-        ├──► Tool Call?
-        │        │
-        │        ▼
-        │   ┌─────────────┐
-        │   │ Tool Caller │
-        │   └──────┬──────┘
-        │          │
-        │     ┌────┴────┐
-        │     ▼         ▼
-        │  Sherlock   Holehe
-        │
-        ▼
-     Response
-        │
-        ▼
-     Discord
+                         ┌─────────────────┐
+                         │    Interface    │
+                         │     Discord     │
+                         └────────┬────────┘
+                                  │
+                                  ▼
+                         ┌─────────────────┐
+                         │      Agent      │
+                         └────────┬────────┘
+                                  │
+                   ┌──────────────┴──────────────┐
+                   │                             │
+                   ▼                             ▼
+          ┌─────────────────┐           ┌─────────────────┐
+          │       RAG       │           │   Tool Caller   │
+          └────────┬────────┘           └────────┬────────┘
+                   │                             │
+                   ▼                             ▼
+          ┌─────────────────┐           ┌─────────────────┐
+          │ Semantic Search │           │      Tools      │
+          │      FAISS      │           │                 │
+          └────────┬────────┘           └─────────────────┘
+                   │
+                   ▼
+          ┌─────────────────┐
+          │ Context Sources │
+          └─────────────────┘
 ```
 
-Quando uma pergunta é enviada, o agente recupera até **15 documentos semanticamente relevantes** e adiciona esse conteúdo ao contexto enviado ao modelo.
+O **Agent** funciona como núcleo da aplicação.
 
-O modelo também pode solicitar a execução das tools disponíveis antes de produzir a resposta final.
+Ele recebe uma solicitação através da interface disponível, recupera informações relevantes das fontes de contexto e envia a pergunta enriquecida ao modelo.
+
+Quando necessário, o modelo também pode solicitar a execução das tools disponibilizadas pelo sistema.
 
 ---
 
-## 🧩 RAG
+## 🧠 Contexto e RAG
+
+O DataCenter AI foi projetado para permitir que conhecimento externo seja incorporado ao agente sem precisar fazer parte do modelo utilizado.
+
+Atualmente, a implementação utiliza:
 
 <div align="center">
 
 <img src="https://img.shields.io/badge/Sentence_Transformers-all--MiniLM--L6--v2-yellow?style=flat-square">
 <img src="https://img.shields.io/badge/FAISS-Vector_Search-0467DF?style=flat-square">
-<img src="https://img.shields.io/badge/JSONL-Local_Data-lightgrey?style=flat-square">
+<img src="https://img.shields.io/badge/JSONL-Context_Source-lightgrey?style=flat-square">
 
 </div>
 
 <br>
 
-O sistema percorre automaticamente:
+Os documentos atuais são carregados de:
 
 ```text
 data/**/*.jsonl
 ```
 
-Durante a inicialização, os documentos são formatados, transformados em embeddings e adicionados a um índice **FAISS mantido em memória**.
+Cada registro válido é formatado e convertido em um embedding utilizando `all-MiniLM-L6-v2`.
 
-Linhas vazias e registros:
+Os vetores resultantes são armazenados em um índice **FAISS em memória**, permitindo recuperar documentos semanticamente relacionados à solicitação do usuário.
+
+O agente atualmente recupera até **15 documentos relevantes** para compor seu contexto.
+
+### Fontes de dados
+
+A pasta `data/` representa as **fontes de contexto atualmente utilizadas**, não um domínio fixo do projeto.
+
+```text
+data/
+├── source_1.jsonl
+├── source_2.jsonl
+└── ...
+```
+
+A pasta está ignorada pelo Git, portanto os dados não acompanham o repositório.
+
+Registros com:
 
 ```json
 {
@@ -125,45 +148,56 @@ Linhas vazias e registros:
 
 são ignorados durante a indexação.
 
-### Dados
-
-A pasta `data/` está ignorada pelo Git e **não acompanha o repositório**.
-
-Antes de iniciar o projeto, forneça seus próprios arquivos:
-
-```text
-data/
-├── values.jsonl
-├── trades.jsonl
-└── ...
-```
-
-Cada linha deve conter um objeto JSON válido.
+> O conteúdo presente em `data/` determina parte do conhecimento externo disponível ao agente, mas não altera o propósito geral do sistema.
 
 ---
 
-## 🔧 Tools
+## 🔧 Tool Calling
 
-O DataCenter AI possui um sistema de tools que podem ser selecionadas automaticamente pelo modelo.
+Além de receber contexto externo, o agente pode utilizar **tools** para executar operações que um LLM sozinho não conseguiria realizar.
 
-| Tool | Função |
-| --- | --- |
-| 🔎 **Sherlock** | Procura um username em diferentes serviços e plataformas |
-| 📧 **Holehe** | Consulta serviços associados a um endereço de e-mail |
+O fluxo básico é:
 
-Os esquemas e o roteamento ficam em:
+```text
+User Request
+     │
+     ▼
+   Agent
+     │
+     ▼
+    LLM
+     │
+     ▼
+Tool required?
+   │       │
+  Yes      No
+   │       │
+   ▼       │
+Tool Caller│
+   │       │
+   ▼       │
+   Tool    │
+   │       │
+   └───┬───┘
+       ▼
+    Response
+```
+
+As tools disponíveis são declaradas em:
 
 ```text
 tools/ToolCaller.py
 ```
 
-enquanto suas implementações ficam em:
+e implementadas em:
 
 ```text
 tools/tools.py
 ```
 
-> Uma ferramenta de busca web também está implementada em `tools/tools.py`, mas atualmente não está exposta ao modelo pelo `ToolCaller`.
+Atualmente existem integrações como **Sherlock** e **Holehe**, além de uma implementação de busca web ainda não exposta ao modelo.
+
+Essas ferramentas são apenas capacidades atualmente conectadas ao agente. A arquitetura permite que outras tools sejam adicionadas conforme a necessidade.
 
 ---
 
@@ -190,27 +224,27 @@ tools/tools.py
 DataCenter-AI/
 │
 ├── bot/
-│   └── rules.txt              # Instruções e formato das respostas
+│   └── rules.txt              # Instruções do agente
 │
 ├── core/
-│   ├── agent.py               # Groq, contexto e fluxo de Tool Calling
-│   ├── bot.py                 # Discord e comando .transcend
-│   └── rag.py                 # JSONL, embeddings, FAISS e busca
+│   ├── agent.py               # Orquestração do agente e LLM
+│   ├── bot.py                 # Interface Discord
+│   └── rag.py                 # Recuperação e indexação de contexto
 │
-├── data/                      # Dados locais (ignorado pelo Git)
+├── data/                      # Fontes locais de contexto
 │   └── *.jsonl
 │
 ├── evals/
 │   └── manual_eval.py         # Avaliação exploratória do agente
 │
 ├── tools/
-│   ├── ToolCaller.py          # Esquemas e roteamento das tools
+│   ├── ToolCaller.py          # Definições e roteamento das tools
 │   └── tools.py               # Implementações das tools
 │
 ├── utils/
 │   └── logging.py             # Configuração centralizada de logs
 │
-├── config.py                  # Variáveis de ambiente
+├── config.py                  # Configuração do ambiente
 ├── main.py                    # Entry point
 └── requirements.txt
 ```
@@ -222,19 +256,16 @@ DataCenter-AI/
 - **Python 3.11+**
 - Token do Discord
 - Chave da API da Groq
-- Arquivos JSONL dentro de `data/`
-- `sherlock` disponível no `PATH`
-- `holehe` disponível no `PATH`
+- Fontes de contexto em `data/`
+- Dependências definidas em `requirements.txt`
 
-As dependências Python estão disponíveis em [`requirements.txt`](requirements.txt).
-
-O modelo utilizado pelo Sentence Transformers pode ser baixado automaticamente durante a primeira execução.
+Tools externas podem possuir requisitos adicionais. Por exemplo, as integrações atuais com Sherlock e Holehe exigem seus respectivos executáveis disponíveis no `PATH`.
 
 ---
 
 ## 🚀 Instalação
 
-### 1. Clone o projeto
+### 1. Clone o repositório
 
 ```bash
 git clone <URL_DO_REPOSITORIO>
@@ -261,24 +292,24 @@ pip install -r requirements.txt
 
 ### 4. Configure o ambiente
 
-Copie `.env.example` para `.env` e defina:
+Copie `.env.example` para `.env`:
 
 ```dotenv
 TOKEN=seu_token_do_discord
 OPENAI_API_KEY=sua_chave_da_groq
 ```
 
-> Apesar do nome `OPENAI_API_KEY`, o cliente utiliza o endpoint compatível com OpenAI disponibilizado pela Groq.
+Apesar do nome `OPENAI_API_KEY`, o cliente atual utiliza o endpoint compatível com OpenAI disponibilizado pela Groq.
 
-### 5. Adicione os dados
+### 5. Adicione fontes de contexto
 
-Coloque seus arquivos `.jsonl` dentro de:
+Adicione os arquivos JSONL desejados em:
 
 ```text
 data/
 ```
 
-Subpastas também são suportadas.
+Os dados precisam estar disponíveis antes da inicialização, pois os embeddings e o índice FAISS são construídos durante o carregamento de `core.rag`.
 
 ### 6. Inicie
 
@@ -286,66 +317,67 @@ Subpastas também são suportadas.
 python main.py
 ```
 
-> Execute o projeto a partir da raiz do repositório. Os caminhos de `data/` e `bot/rules.txt` são relativos ao diretório atual.
-
-Os dados precisam estar disponíveis **antes da inicialização**, pois os embeddings e o índice FAISS são criados durante a importação de `core.rag`.
-
 ---
 
 ## 💬 Uso
 
-No Discord:
+A interface atual do projeto é o Discord.
 
 ```text
-.transcend Analise os anúncios de Kitsune e os itens oferecidos por ela.
+.transcend <pergunta>
 ```
 
-O agente recupera os documentos semanticamente mais relevantes, utiliza os resultados como contexto e envia a solicitação ao modelo.
+Por exemplo:
 
-As respostas são encaminhadas ao canal em partes de até **2.000 caracteres**.
+```text
+.transcend Analise as informações disponíveis sobre este assunto.
+```
+
+O agente recupera contexto semanticamente relacionado à pergunta, fornece essas informações ao modelo e disponibiliza as tools configuradas para aquela execução.
+
+As respostas são divididas automaticamente em partes de até **2.000 caracteres** antes de serem enviadas ao Discord.
 
 ---
 
-## 🧪 Avaliação manual
+## 🧪 Avaliação
 
-O projeto inclui um pequeno ambiente de avaliação em:
+O projeto possui um ambiente de avaliação manual em:
 
 ```text
 evals/manual_eval.py
 ```
 
-Ele executa uma coleção de prompts analíticos contra o agente e registra informações como respostas, contexto recuperado e métricas em:
+Ele permite executar conjuntos de prompts contra o agente e analisar seu comportamento, contexto recuperado e respostas.
 
-```text
-resultados_teste.txt
-```
-
-Esse script é destinado à **avaliação exploratória e humana do comportamento do agente**, não sendo uma suíte automatizada de testes.
+O script é destinado a **avaliação exploratória**, não sendo uma suíte automatizada de testes.
 
 ---
 
 ## 📝 Logging
 
-O projeto utiliza logging centralizado através de:
+A configuração centralizada de logging fica em:
 
 ```text
 utils/logging.py
 ```
 
-Os diferentes módulos podem registrar informações de execução e diagnóstico sem depender de `print()`, facilitando a análise do fluxo do agente e principalmente do processo de recuperação do RAG.
+Os módulos utilizam loggers próprios para registrar eventos e informações de diagnóstico sem depender de `print()`.
+
+Isso permite acompanhar separadamente componentes como Agent, RAG, interfaces e tools durante a execução.
 
 ---
 
-## 🤖 Configuração do agente
+## ⚙️ Configuração
 
 | Arquivo | Responsabilidade |
 | --- | --- |
-| `bot/rules.txt` | Instruções e formato esperado das respostas |
-| `core/agent.py` | Modelo, contexto e processamento das queries |
-| `core/rag.py` | Recuperação e indexação dos dados |
-| `tools/ToolCaller.py` | Definição das tools disponíveis |
+| `bot/rules.txt` | Comportamento e instruções do agente |
+| `core/agent.py` | Orquestração do modelo e contexto |
+| `core/rag.py` | Recuperação e indexação |
+| `core/bot.py` | Interface Discord |
+| `tools/ToolCaller.py` | Tools disponibilizadas ao modelo |
 | `tools/tools.py` | Implementação das tools |
-| `utils/logging.py` | Configuração do sistema de logs |
+| `utils/logging.py` | Configuração dos logs |
 
 O modelo padrão utilizado atualmente é:
 
@@ -357,13 +389,14 @@ openai/gpt-oss-120b
 
 ## ⚠️ Limitações atuais
 
-- O índice FAISS existe apenas em memória e é reconstruído durante a inicialização.
-- Os dados locais não acompanham o repositório.
-- O projeto ainda utiliza caminhos relativos ao diretório de execução.
-- A busca web existe na implementação, mas ainda não está exposta ao modelo através do `ToolCaller`.
-- O ambiente em `evals/` realiza avaliação manual, não testes automatizados.
+- O índice FAISS é mantido em memória e reconstruído na inicialização.
+- A implementação atual de contexto utiliza arquivos JSONL.
+- Os dados em `data/` não acompanham o repositório.
+- Alguns caminhos ainda são relativos ao diretório de execução.
+- A busca web implementada ainda não está exposta ao modelo.
+- O ambiente de `evals/` realiza avaliação manual, não testes automatizados.
 
-O projeto utiliza `discord.py-self` com `self_bot=True`, automatizando uma conta de usuário. Verifique os termos atuais da plataforma antes de utilizar uma conta real.
+A interface atual utiliza `discord.py-self` com `self_bot=True`, automatizando uma conta de usuário. Verifique os termos atuais da plataforma antes de utilizar uma conta real.
 
 ---
 
@@ -371,7 +404,9 @@ O projeto utiliza `discord.py-self` com `self_bot=True`, automatizando uma conta
 
 > **Experimental / Em desenvolvimento**
 
-O DataCenter AI continua evoluindo. O sistema RAG, ferramentas, conjunto de dados e processo de avaliação podem mudar conforme novos experimentos são realizados.
+O DataCenter AI está sendo desenvolvido como uma arquitetura extensível para agentes capazes de combinar **LLMs, contexto externo e ferramentas**.
+
+Novas fontes de contexto, interfaces, estratégias de recuperação e tools podem ser incorporadas conforme o projeto evolui.
 
 ---
 
@@ -379,9 +414,9 @@ O DataCenter AI continua evoluindo. O sistema RAG, ferramentas, conjunto de dado
 
 ### 🧠 DataCenter AI
 
-**Turning market data into context.**
+**Context in. Intelligence out.**
 
-`Discord` • `Groq` • `RAG` • `FAISS` • `Tool Calling`
+`LLM` • `RAG` • `Semantic Search` • `Tool Calling`
 
 <br><br>
 
