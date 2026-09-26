@@ -2,8 +2,6 @@ from openai import AsyncOpenAI
 from core.rag import RAG
 from tools.ToolCaller import ToolCaller
 import json
-import asyncio
-
 
 
 class Agent:
@@ -15,31 +13,41 @@ class Agent:
             )
             self.model = model
             print("Initialized.")
+
         except Exception as e:
-            return print(e)
+            print(e)
+            return
 
         self.ToolCaller = ToolCaller()
 
         with open("bot/rules.txt", encoding="utf-8") as f:
-            for linha in f:
-                self.rules = "\n".join(linha)
-    
+            self.rules = f.read()
+
     async def query(self, query, callback):
         messages = [
-            {"role": "assistant", "content": self.rules},
+            {
+                "role": "system",
+                "content": self.rules
+            }
         ]
-        contexto = "\n\n".join(RAG.search(query, k=10))
+
+        resultados = RAG.search(query, k=15)
+
+        contexto = "\n\n".join(resultados)
+
+        print(f"Documentos recuperados: {len(resultados)}")
+        print(f"Caracteres do contexto: {len(contexto):,}")
 
         messages.append({
             "role": "user",
             "content": f"""
-Contexto:
-
+<RAG_CONTEXT>
 {contexto}
+</RAG_CONTEXT>
 
-query:
-
+<USER_QUERY>
 {query}
+</USER_QUERY>
 """
         })
 
@@ -53,8 +61,6 @@ query:
 
         message = response.choices[0].message
 
-        result = None
-
         if message.tool_calls:
             tool = message.tool_calls[0]
             args = json.loads(tool.function.arguments)
@@ -67,4 +73,14 @@ query:
         else:
             result = message.content
 
-        await callback(result)
+        debug_result = {
+            "response": result,
+            "context": contexto,
+            "documents": resultados,
+            "document_count": len(resultados),
+            "context_characters": len(contexto)
+        }
+
+        await callback(debug_result["response"])
+
+        return debug_result
