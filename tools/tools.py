@@ -1,50 +1,71 @@
-import subprocess
-from googlesearch import search
+import asyncio
+from googlesearch import search as google_search
+
 
 class Tools:
+
     @staticmethod
     async def sherlock(username, callback):
-            try:
-                resultado = subprocess.run(
-                    ["sherlock", username],
-                    capture_output=True,
-                    text=True,
-                    encoding="utf-8"
-                )
-                print(resultado.stdout if resultado.returncode == 0 else resultado.stderr)
-                output = resultado.stdout if resultado.returncode == 0 else resultado.stderr
-                await callback(output)  # Chama o callback com a saída do comando
+        try:
+            process = await asyncio.create_subprocess_exec(
+                "sherlock",
+                username,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
 
-            except Exception as e:
-                print(f"Exceção ao executar sherlock para {username}: {e}")
+            stdout, stderr = await process.communicate()
+
+            if process.returncode == 0:
+                output = stdout.decode("utf-8", errors="replace")
+            else:
+                output = stderr.decode("utf-8", errors="replace")
+
+            print(output)
+
+            await callback(output)
+
+        except Exception as e:
+            print(f"Exceção ao executar sherlock para {username}: {e}")
 
 
     @staticmethod
     async def holehe(email, callback):
-            try:
-                resultado = subprocess.run(
-                    ["holehe", email],
-                    capture_output=True,
-                    text=True,
-                    encoding="utf-8"
-                )
-                print(resultado.stdout if resultado.returncode == 0 else resultado.stderr)
-                output = resultado.stdout if resultado.returncode == 0 else resultado.stderr
-                await callback(output)  # Chama o callback com a saída do comando
+        try:
+            process = await asyncio.create_subprocess_exec(
+                "holehe",
+                email,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
 
-            except Exception as e:
-                print(f"Exceção ao executar holehe para {email}: {e}")
-    
+            stdout, stderr = await process.communicate()
 
+            if process.returncode == 0:
+                output = stdout.decode("utf-8", errors="replace")
+            else:
+                output = stderr.decode("utf-8", errors="replace")
 
+            print(output)
+
+            await callback(output)
+
+        except Exception as e:
+            print(f"Exceção ao executar holehe para {email}: {e}")
 
 
     @staticmethod
-    def search(query, callback):
+    async def search(query, callback):
         try:
-            results = []
-            for j in search(query, num_results=10):
-                results.append(j)
-            callback("\n".join(results))  # Chama o callback com os resultados da pesquisa
+            results = await asyncio.to_thread(
+                lambda: list(
+                    google_search(query, num_results=10)
+                )
+            )
+
+            output = "\n".join(results)
+
+            await callback(output)
+
         except Exception as e:
             print(f"Exceção ao executar pesquisa para {query}: {e}")
