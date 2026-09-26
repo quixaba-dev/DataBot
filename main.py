@@ -1,10 +1,12 @@
-from core.bot import Bot
+from bot.discord import Bot
 from core.agent import Agent
 from config import cfg
+from providers.openaicompatible import OpenAICompatible
 
-Agent_instance = Agent(api_key=cfg.APIKEY)
+provider = OpenAICompatible()
+
+Agent_instance = Agent(provider=provider)
 
 if __name__ == '__main__':
-    bot = Bot(cfg.TOKEN, agent=Agent_instance)
+    bot = Bot(cfg.LLM_INTEGRATION_TOKEN, agent=Agent_instance)
     bot.start()
-    bot.bot.run(cfg.TOKEN)

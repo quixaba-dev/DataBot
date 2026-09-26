@@ -22,10 +22,11 @@ class Bot():
     def start(self):
         @self.bot.command("transcend")
         async def handle(ctx, *, prompt):
-            async def ctxsend(result):
-                limit = 2000
+            response = await self.model.query(prompt)
+            content = response["response"]
 
-                for i in range(0, len(result), limit):
-                    await ctx.send(result[i:i + limit])
+            limit = 2000
+            for i in range(0, len(content), limit):
+                await ctx.send(content[i:i+limit])
 
-            await self.model.query(prompt, ctxsend)
+        self.bot.run(self.token)

@@ -22,6 +22,23 @@ tools=[
     {
         "type": "function",
         "function": {
+            "name": "search",
+            "description": "Pesquisa informações na internet.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "Termo ou consulta a ser pesquisada."
+                    }
+                },
+                "required": ["query"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "holehe",
             "description": "Pesquisa um email utilizando Holehe.",
             "parameters": {
@@ -43,39 +60,20 @@ class ToolCaller:
     def __init__(self, tools=tools):
         self.tools = tools
         print("<< ToolCaller initialized >>")
-        # Inicialização simples do ToolCaller, armazenando a lista de ferramentas fornecida.
-    
-    async def call_tool(self, tool_name, callback, **kwargs):
-        for tool in self.tools:
 
-            if (
-                tool["type"] == "function"
-                and tool["function"]["name"] == tool_name
-            ):
+    async def call_tool(self, tool_name, **kwargs):
+        registered = any(
+            tool["type"] == "function"
+            and tool["function"]["name"] == tool_name
+            for tool in self.tools
+        )
 
-                if tool_name == "sherlock":
-                    username = kwargs.get("username")
+        if not registered:
+            return f"Tool '{tool_name}' não encontrada."
 
-                    if not username:
-                        return "Erro: 'username' não fornecido."
+        function = getattr(Tools, tool_name, None)
 
-                    await Tools.sherlock(username, callback)
+        if function is None:
+            return f"Tool '{tool_name}' não implementada."
 
-                    return f"Pesquisa finalizada para o usuário: {username}"
-
-
-                if tool_name == "holehe":
-                    email = kwargs.get("email")
-
-                    if not email:
-                        return "Erro: 'email' não fornecido."
-
-                    await Tools.holehe(email, callback)
-
-                    return f"Pesquisa finalizada para o email: {email}"
-
-        return f"Tool '{tool_name}' não encontrada."
-
-
-
-        return f"Erro: Ferramenta '{tool_name}' não encontrada." # Retorno com erro caso tool_name não seja encontrado
+        return await function(**kwargs)

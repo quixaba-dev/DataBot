@@ -3,9 +3,8 @@ from googlesearch import search as google_search
 
 
 class Tools:
-
     @staticmethod
-    async def sherlock(username, callback):
+    async def sherlock(username):
         try:
             process = await asyncio.create_subprocess_exec(
                 "sherlock",
@@ -21,16 +20,14 @@ class Tools:
             else:
                 output = stderr.decode("utf-8", errors="replace")
 
-            print(output)
-
-            await callback(output)
+            return output
 
         except Exception as e:
             print(f"Exceção ao executar sherlock para {username}: {e}")
 
 
     @staticmethod
-    async def holehe(email, callback):
+    async def holehe(email):
         try:
             process = await asyncio.create_subprocess_exec(
                 "holehe",
@@ -46,26 +43,23 @@ class Tools:
             else:
                 output = stderr.decode("utf-8", errors="replace")
 
-            print(output)
-
-            await callback(output)
+            return output
 
         except Exception as e:
             print(f"Exceção ao executar holehe para {email}: {e}")
 
 
     @staticmethod
-    async def search(query, callback):
-        try:
-            results = await asyncio.to_thread(
-                lambda: list(
-                    google_search(query, num_results=10)
-                )
+    async def search(query):
+        results = await asyncio.to_thread(
+            lambda: list(
+                google_search(query, num_results=10)
             )
+        )
 
-            output = "\n".join(results)
+        print("RAW RESULTS:", results)
 
-            await callback(output)
+        if not results:
+            return "Nenhum resultado encontrado."
 
-        except Exception as e:
-            print(f"Exceção ao executar pesquisa para {query}: {e}")
+        return "\n".join(results)
